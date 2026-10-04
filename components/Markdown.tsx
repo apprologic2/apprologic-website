@@ -3,11 +3,12 @@ import remarkGfm from "remark-gfm";
 import Link from "next/link";
 import ContactForm from "./ContactForm";
 import Zoomable from "./Zoomable";
+import Video from "./Video";
 
 /**
  * Rendert den Markdown-Text einer Seite.
  *
- * Neben normalem Markdown gibt es vier eigene Blöcke (als Code-Fences):
+ * Neben normalem Markdown gibt es eigene Blöcke (als Code-Fences):
  *
  * ```tiles            Kacheln. Ein Absatz je Kachel: erste Zeile Titel,
  * Titel               dann Text, optional letzte Zeile "-> /pfad/ Linktext".
@@ -30,12 +31,18 @@ import Zoomable from "./Zoomable";
  * Screenshot der Maschinenliste
  * ```
  *
+ * ```video            Video: erste Zeile Pfad zur MP4 (in public/), optional dahinter
+ * /video/datei.mp4 /video/datei.jpg   das Vorschaubild. Danach die Beschreibung (für Screenreader).
+ * Beschreibung des Videos
+ * ```
+ *
  * ```form             Kontaktformular
  * ```
  */
 
 const LINK = /^->\s*(\S+)\s+(.+)$/;
 const IMAGE_SRC = /^\/\S+\.(svg|png|jpe?g|webp|avif|gif)$/i;
+const VIDEO_SRC = /^\/\S+\.(mp4|webm)$/i;
 
 function Tiles({ src }: { src: string }) {
   const blocks = src.trim().split(/\n\s*\n/);
@@ -72,6 +79,17 @@ function Image({ src }: { src: string }) {
       {variant === "logos"
         ? <img src={path} alt={rest.join(" ").trim()} loading="lazy" />
         : <Zoomable src={path} alt={rest.join(" ").trim()} />}
+    </figure>
+  );
+}
+
+function VideoBlock({ src }: { src: string }) {
+  const [first, ...rest] = src.trim().split("\n");
+  const [path, poster] = first.trim().split(/\s+/);
+  if (!VIDEO_SRC.test(path)) return <div className="img">{src.trim()}</div>;
+  return (
+    <figure className="figure figure-video">
+      <Video src={path} poster={poster && IMAGE_SRC.test(poster) ? poster : undefined} label={rest.join(" ").trim()} />
     </figure>
   );
 }
@@ -124,6 +142,7 @@ export default function Markdown({ children }: { children: string }) {
           if (lang === "numbers") return <Numbers src={src} />;
           if (lang === "cta") return <Cta src={src} />;
           if (lang === "image") return <Image src={src} />;
+          if (lang === "video") return <VideoBlock src={src} />;
           if (lang === "form") return <ContactForm />;
           return <code className={className}>{children}</code>;
         },
