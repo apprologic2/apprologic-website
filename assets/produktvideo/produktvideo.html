@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Service Pacemaker – Produktvideo</title>
+<!--
+  Produktvideo „Eine Störung, zwei Wege“ (ca. 66 Sekunden, 1920 × 1080).
+  Im Browser öffnen: spielt in Endlosschleife ab (Leertaste = Pause).
+  Als MP4 aufnehmen: siehe render.mjs im selben Ordner. Das Skript ruft window.render(t) für jedes Einzelbild auf.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Work+Sans:wght@500;600;700&display=block" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1c638c; --blue-dark: #175173; --blue-deep: #0f3a53; --blue-soft: #e8f0f5;
+    --green: #24b38a; --green-soft: #e4f6f0; --red: #e0533d; --ink: #1f2a33; --text: #53585b; --muted: #6f777c;
+    --bg: #f4f7f9; --line: #e1e8ed;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+  #stage {
+    position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden;
+    transform-origin: 0 0; font-family: "Open Sans", "Segoe UI", sans-serif; color: var(--text);
+    background: var(--blue-deep);
+  }
+  .abs { position: absolute; }
+  .head { font-family: "Work Sans", "Segoe UI", sans-serif; }
+  .center { left: 0; right: 0; text-align: center; }
+
+  /* Hintergründe */
+  #bgLight { inset: 0; background: radial-gradient(1200px 700px at 80% 10%, rgba(36,179,138,.10), transparent 60%), var(--bg); }
+  #bgGlow { inset: 0; background: radial-gradient(900px 600px at 50% 45%, rgba(36,179,138,.14), transparent 70%); }
+  #grid { inset: 0; background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 60px 60px; }
+
+  /* Untertitel */
+  .cap {
+    bottom: 92px; font-family: "Work Sans", sans-serif; font-weight: 600; font-size: 52px; letter-spacing: -.01em;
+    color: #fff; text-align: center; left: 0; right: 0;
+  }
+  .cap.dark { color: var(--blue-deep); }
+  .cap small { display: block; font-family: "Open Sans", sans-serif; font-weight: 400; font-size: 30px; margin-top: 12px; opacity: .8; }
+
+  /* Szene 1/2/8: Maschine */
+  #clock { top: 96px; font-size: 40px; color: rgba(255,255,255,.85); font-weight: 500; letter-spacing: .02em; }
+  #machine { overflow: visible; left: 760px; top: 250px; width: 400px; height: 400px; }
+  #fault {
+    left: 1110px; top: 250px; padding: 14px 24px; border-radius: 999px; background: var(--red); color: #fff;
+    font: 600 28px "Work Sans", sans-serif; box-shadow: 0 10px 30px rgba(224,83,61,.4); white-space: nowrap;
+  }
+  #downtime {
+    right: 90px; top: 90px; text-align: right; color: #fff; font-family: "Work Sans", sans-serif;
+  }
+  #downtime span { display: block; font-size: 24px; opacity: .7; letter-spacing: .1em; text-transform: uppercase; }
+  #downtime b { font-size: 72px; font-weight: 700; color: #ff8a73; font-variant-numeric: tabular-nums; }
+
+  .chaos {
+    padding: 18px 24px; border-radius: 14px; background: #fff; color: var(--ink); font-size: 24px; line-height: 1.35;
+    box-shadow: 0 20px 50px rgba(0,0,0,.35); white-space: nowrap; display: flex; gap: 16px; align-items: center;
+  }
+  .chaos i { font-style: normal; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 12px; color: #fff; font-weight: 700; font-size: 22px; flex: none; }
+  .chaos small { display: block; color: var(--muted); font-size: 19px; }
+  .chaos.note { background: #ffe680; transform-origin: center; font-family: "Segoe Print", "Comic Sans MS", cursive; font-size: 30px; }
+
+  /* Szene 3: Titel */
+  #eyebrow { top: 300px; font-size: 34px; color: var(--green); font-weight: 600; letter-spacing: .04em; }
+  #title { top: 360px; font-size: 128px; font-weight: 700; color: var(--blue-deep); letter-spacing: -.03em; }
+  #title sup { font-size: 40px; vertical-align: top; position: relative; top: 26px; }
+  #subtitle { top: 530px; font-size: 46px; color: var(--blue); font-weight: 500; }
+
+  /* Karten */
+  .card {
+    background: #fff; border-radius: 22px; border: 1px solid var(--line);
+    box-shadow: 0 4px 12px rgba(15,58,83,.08), 0 24px 60px rgba(15,58,83,.12);
+  }
+  .card h3 { font: 600 30px "Work Sans", sans-serif; color: var(--blue-deep); }
+  .label { font: 700 17px "Work Sans", sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #8a969d; }
+
+  /* Szene 4: Selbsthilfe – Dokumentation und KI */
+  #docs { left: 150px; top: 130px; width: 760px; height: 720px; padding: 40px 44px; }
+  .mhead { display: flex; align-items: center; gap: 20px; margin: 14px 0 26px; }
+  .mhead .thumb { width: 72px; height: 72px; border-radius: 16px; background: var(--blue-soft); display: grid; place-items: center; flex: none; }
+  .mhead b { display: block; font: 600 28px "Work Sans", sans-serif; color: var(--blue-deep); }
+  .mhead span { font-size: 20px; color: var(--muted); }
+  .search { display: flex; align-items: center; gap: 14px; padding: 16px 20px; border: 2px solid var(--blue); border-radius: 14px; font-size: 26px; color: var(--ink); min-height: 66px; }
+  .hits { margin-top: 18px; font-size: 19px; color: var(--muted); }
+  .hit { margin-top: 14px; padding: 16px 20px; border-radius: 14px; background: var(--bg); display: flex; gap: 16px; }
+  .hit i { width: 44px; height: 44px; border-radius: 10px; background: #fff; display: grid; place-items: center; flex: none; }
+  .hit b { display: block; font: 600 22px "Work Sans", sans-serif; color: var(--blue-deep); }
+  .hit span { font-size: 20px; color: var(--text); }
+  .hit mark { background: #fff1b8; color: inherit; padding: 0 3px; border-radius: 3px; }
+
+  #chat { left: 970px; top: 130px; width: 800px; height: 720px; padding: 40px 44px; }
+  .bubble { position: absolute; padding: 16px 22px; border-radius: 20px; font-size: 24px; line-height: 1.42; max-width: 610px; }
+  .bubble.me { right: 44px; background: var(--blue); color: #fff; border-bottom-right-radius: 6px; }
+  .bubble.ai { left: 44px; background: var(--bg); color: var(--ink); border-bottom-left-radius: 6px; }
+  .ai-tag { display: flex; align-items: center; gap: 10px; font: 600 18px "Work Sans", sans-serif; color: var(--green); margin-bottom: 6px; }
+  #atext { white-space: pre-line; }
+  .source { margin-top: 12px; padding: 8px 14px; border-radius: 10px; border: 2px solid var(--green); color: #17805f; font-size: 19px; font-weight: 600; display: inline-flex; gap: 10px; align-items: center; background: var(--green-soft); }
+  .caret { display: inline-block; width: 3px; height: 1.1em; background: var(--blue); vertical-align: -4px; margin-left: 2px; }
+  #srbtn { margin-top: 14px; display: inline-flex; gap: 10px; align-items: center; padding: 14px 24px; border-radius: 12px; background: var(--green); color: #fff; font: 600 24px "Work Sans", sans-serif; box-shadow: 0 8px 24px rgba(36,179,138,.35); }
+
+  /* Szene 5: Serviceanfrage und Zuweisung */
+  #request { left: 150px; top: 150px; width: 760px; height: 700px; padding: 40px 44px; }
+  .field { display: flex; align-items: center; gap: 18px; padding: 17px 0; border-top: 1px solid var(--line); font-size: 24px; color: var(--ink); }
+  .field .n { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); color: var(--muted); display: grid; place-items: center; font: 600 20px "Work Sans", sans-serif; flex: none; }
+  .field.on .n { background: var(--blue); color: #fff; }
+  .field label { width: 160px; color: var(--muted); font-size: 21px; flex: none; }
+  .field .v { font-weight: 600; }
+  .chip { display: inline-flex; gap: 10px; align-items: center; padding: 8px 14px; border-radius: 10px; background: var(--green-soft); color: #17805f; font-size: 19px; font-weight: 600; }
+  #send { margin-top: 26px; display: inline-flex; gap: 12px; align-items: center; padding: 16px 34px; border-radius: 12px; background: var(--green); color: #fff; font: 600 26px "Work Sans", sans-serif; box-shadow: 0 8px 24px rgba(36,179,138,.35); }
+  #console { left: 1010px; top: 150px; width: 760px; height: 700px; padding: 40px 44px; }
+  .route { display: flex; align-items: center; gap: 12px; margin-top: 22px; font-size: 22px; color: var(--muted); }
+  .route .pill { white-space: nowrap; padding: 10px 16px; border-radius: 12px; background: var(--bg); font-weight: 600; color: var(--ink); }
+  .route .pill.on { background: var(--blue); color: #fff; }
+  .route .pill.team.on { background: var(--green); }
+  .inbox { margin-top: 34px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .inrow { display: flex; align-items: center; gap: 14px; padding: 16px 18px; margin-top: 10px; border-radius: 12px; font-size: 21px; color: var(--text); border: 2px solid transparent; }
+  .inrow b { font-weight: 600; color: var(--ink); }
+  .inrow em { margin-left: auto; font-style: normal; font-size: 18px; padding: 4px 12px; border-radius: 999px; background: var(--bg); white-space: nowrap; }
+  #newrow { background: var(--green-soft); border-color: var(--green); }
+  #newrow em { background: var(--green); color: #fff; }
+  #flyer { width: 84px; height: 60px; left: 0; top: 0; }
+
+  /* Szene 6: Chat am Vorgang (wie Teams) */
+  #teams { left: 210px; top: 110px; width: 1500px; height: 740px; overflow: hidden; display: flex; }
+  #teams .side { width: 300px; background: #f0f4f7; border-right: 1px solid var(--line); padding: 32px 22px; flex: none; }
+  .chan { padding: 14px 16px; border-radius: 10px; font-size: 20px; margin-top: 10px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chan.on { background: #fff; color: var(--blue-deep); font-weight: 600; box-shadow: 0 1px 4px rgba(15,58,83,.1); }
+  #teams .main { flex: 1; position: relative; }
+  .thead { display: flex; align-items: center; gap: 18px; padding: 26px 36px; border-bottom: 1px solid var(--line); }
+  .thead h3 { font-size: 27px; }
+  .avs { margin-left: auto; display: flex; }
+  .avs span { width: 44px; height: 44px; border-radius: 50%; border: 3px solid #fff; margin-left: -10px; display: grid; place-items: center; color: #fff; font: 600 16px "Work Sans", sans-serif; }
+  .status { display: inline-block; padding: 8px 18px; border-radius: 999px; font: 600 20px "Work Sans", sans-serif; white-space: nowrap; }
+  .tmsg { position: absolute; left: 36px; right: 60px; display: flex; gap: 18px; }
+  .tmsg .av { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: #fff; font: 600 20px "Work Sans", sans-serif; flex: none; }
+  .tmsg .nm { font: 600 20px "Work Sans", sans-serif; color: var(--ink); }
+  .tmsg .nm small { font: 400 18px "Open Sans", sans-serif; color: var(--muted); margin-left: 10px; }
+  .tmsg .tx { margin-top: 6px; background: var(--bg); padding: 14px 20px; border-radius: 4px 16px 16px 16px; font-size: 23px; line-height: 1.42; color: var(--ink); max-width: 960px; }
+  .tmsg.cust .tx { background: var(--blue-soft); }
+  .att { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .att span { display: inline-flex; gap: 8px; align-items: center; padding: 8px 14px; border-radius: 10px; background: #fff; border: 1px solid var(--line); font-size: 19px; font-weight: 600; color: var(--blue-dark); }
+  .photo { width: 160px; height: 96px; border-radius: 12px; margin-top: 10px; background: linear-gradient(135deg, #9fbdcf, #1c638c); position: relative; overflow: hidden; }
+  .photo::after { content: ""; position: absolute; left: 54px; top: 22px; width: 52px; height: 52px; border-radius: 50%; border: 6px solid rgba(255,255,255,.7); }
+  .typing { position: absolute; left: 106px; font-size: 20px; color: var(--muted); font-style: italic; display: flex; gap: 10px; align-items: center; }
+  .typing i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+
+  /* Szene 7: Netz */
+  #net { left: 0; top: 0; width: 1920px; height: 1080px; }
+  .node { position: absolute; width: 320px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .node.top { flex-direction: column-reverse; }
+  .node.top .ic { margin: 16px auto 0; }
+  .node.top b { order: 3; }
+  .node .ic { width: 120px; height: 120px; margin: 0 auto 16px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 10px 30px rgba(15,58,83,.15); border: 3px solid var(--blue-soft); }
+  .node b { display: block; font: 600 30px "Work Sans", sans-serif; color: var(--blue-deep); }
+  .node span { font-size: 21px; color: var(--muted); }
+
+  /* Szene 8: Zahlen */
+  .big { top: 270px; width: 700px; text-align: center; }
+  .big b { display: block; font: 700 200px/1 "Work Sans", sans-serif; color: var(--green); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+  .big span { display: block; margin-top: 20px; font: 600 40px "Work Sans", sans-serif; color: var(--blue-deep); }
+  .big small { display: block; margin-top: 10px; font-size: 26px; color: var(--muted); }
+  #facts { top: 690px; font: 600 38px "Work Sans", sans-serif; color: var(--blue); }
+  #footnote { top: 770px; font-size: 22px; color: var(--muted); }
+
+  /* Szene 9 */
+  #ok {
+    left: 1110px; top: 250px; padding: 14px 24px; border-radius: 999px; background: var(--green); color: #fff;
+    font: 600 28px "Work Sans", sans-serif; box-shadow: 0 10px 30px rgba(36,179,138,.4); white-space: nowrap;
+  }
+  #endcard { inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #fff; }
+  #endcard svg { width: 380px; height: auto; color: #fff; }
+  #endcard .p { margin-top: 56px; font: 700 96px "Work Sans", sans-serif; letter-spacing: -.03em; }
+  #endcard .p sup { font-size: 34px; vertical-align: top; position: relative; top: 18px; }
+  #endcard .s { margin-top: 10px; font-size: 38px; opacity: .85; }
+  #endcard .c { margin-top: 64px; padding: 24px 48px; border-radius: 16px; background: var(--green); font: 600 36px "Work Sans", sans-serif; }
+  #endcard .u { margin-top: 26px; font-size: 30px; opacity: .8; }
+
+  #fade { inset: 0; background: #000; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bgLight" class="abs"></div>
+  <div id="grid" class="abs"></div>
+  <div id="bgGlow" class="abs"></div>
+
+  <!-- ===== Szene 1/2: Störung und Chaos ===== -->
+  <div id="clock" class="abs center head">Montag, 7:42 Uhr</div>
+  <div id="downtime" class="abs"><span>Stillstand</span><b id="dtv">0 Std.</b></div>
+
+  <svg id="machine" class="abs" viewBox="0 0 400 400" aria-hidden="true">
+    <ellipse cx="200" cy="372" rx="170" ry="14" fill="#000" opacity=".25"/>
+    <line x1="300" y1="78" x2="300" y2="40" stroke="#9fbdcf" stroke-width="6"/>
+    <circle id="lampGlow" cx="300" cy="30" r="34" fill="#e0533d" opacity="0"/>
+    <circle id="lamp" cx="300" cy="30" r="16" fill="#9fbdcf"/>
+    <rect x="30" y="78" width="340" height="270" rx="22" fill="#2a77a3"/>
+    <rect x="30" y="78" width="340" height="40" rx="22" fill="#3b8bb8"/>
+    <rect x="30" y="98" width="340" height="20" fill="#3b8bb8"/>
+    <rect x="58" y="138" width="200" height="160" rx="12" fill="#0f3a53"/>
+    <rect x="70" y="150" width="176" height="136" rx="8" fill="#175173"/>
+    <g id="spindle"><rect x="146" y="150" width="24" height="70" fill="#9fbdcf"/><path d="M146 220h24l-12 22z" fill="#d2e1ea"/></g>
+    <rect x="96" y="262" width="124" height="16" rx="4" fill="#9fbdcf"/>
+    <rect x="278" y="138" width="70" height="90" rx="10" fill="#0f3a53"/>
+    <rect id="screen" x="286" y="146" width="54" height="40" rx="4" fill="#24b38a"/>
+    <circle cx="298" cy="206" r="7" fill="#9fbdcf"/><circle cx="326" cy="206" r="7" fill="#e0533d"/>
+    <rect x="278" y="244" width="70" height="54" rx="10" fill="#175173"/>
+    <rect x="30" y="320" width="340" height="28" rx="8" fill="#175173"/>
+    <text x="200" y="340" text-anchor="middle" font-family="Work Sans, sans-serif" font-size="15" font-weight="600" fill="#9fbdcf" letter-spacing="2">SN 24-1087</text>
+  </svg>
+  <div id="fault" class="abs">⚠ Störung E-217</div>
+  <div id="ok" class="abs">✓ Läuft wieder</div>
+
+  <div id="chaosWrap">
+    <div class="chaos abs" data-x="210" data-y="200" data-r="-6" data-d="6.4"><i style="background:#1c638c">✉</i><div>AW: AW: AW: Störung??<small>3 ungelesene E-Mails</small></div></div>
+    <div class="chaos abs" data-x="1310" data-y="380" data-r="5" data-d="7.0"><i style="background:#25a366">☏</i><div>Foto_Maschine.jpg<small>per Chat aufs Diensthandy</small></div></div>
+    <div class="chaos note abs" data-x="300" data-y="560" data-r="-9" data-d="7.6">Rückruf Hr. Weber!!</div>
+    <div class="chaos abs" data-x="1240" data-y="620" data-r="-4" data-d="8.2"><i style="background:#1f7a46">X</i><div>Wartungsplan_final_v3.xlsx<small>Wer hat die aktuelle Version?</small></div></div>
+    <div class="chaos abs" data-x="140" data-y="400" data-r="3" data-d="8.8"><i style="background:#c0412c">PDF</i><div>Handbuch_2019.pdf<small>Netzlaufwerk, veraltet</small></div></div>
+    <div class="chaos abs" data-x="1180" data-y="150" data-r="7" data-d="9.4"><i style="background:#e0533d">☎</i><div>4 verpasste Anrufe<small>Kunde, Händler, Kunde, Kunde</small></div></div>
+    <div class="chaos abs" data-x="600" data-y="700" data-r="-3" data-d="10.0"><i style="background:#6f777c">?</i><div>„Hat jemand die Seriennummer?“<small>Innendienst, 3 Postfächer</small></div></div>
+  </div>
+
+  <div id="cap1" class="cap abs">Eine Maschine steht still.</div>
+  <div id="cap2" class="cap abs">Und dann beginnt die Suche.<small>E-Mails. Anrufe. Fotos im Chat. Excel-Listen.</small></div>
+
+  <!-- ===== Szene 3: Titel ===== -->
+  <div id="eyebrow" class="abs center head">Es geht auch anders.</div>
+  <div id="title" class="abs center head">Service Pacemaker<sup>®</sup></div>
+  <div id="subtitle" class="abs center head">Jede Maschine hat eine Akte.</div>
+
+  <!-- ===== Szene 4: Selbsthilfe – Dokumentation und KI ===== -->
+  <div id="docs" class="card abs">
+    <div class="label">Dokumentation</div>
+    <div class="mhead"><div class="thumb"><svg width="44" height="44" viewBox="0 0 400 400"><rect x="30" y="78" width="340" height="270" rx="22" fill="#2a77a3"/><rect x="58" y="138" width="200" height="160" rx="12" fill="#0f3a53"/><rect x="278" y="138" width="70" height="90" rx="10" fill="#0f3a53"/></svg></div><div><b>Fräszentrum FZ 600</b><span>SN 24-1087 · 48 Dokumente zu Ihrer Maschine</span></div></div>
+    <div class="search"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1c638c" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span id="stext"></span><span id="scaret" class="caret"></span></div>
+    <div id="hitsLbl" class="hits">3 Treffer in Ihrer Dokumentation</div>
+    <div class="hit" id="h1"><i><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1c638c" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg></i><div><b>Wartungshandbuch FZ 600 · Seite 42</b><span><mark>E-217</mark>: Kühlmitteldruck zu niedrig. Filter F2 prüfen …</span></div></div>
+    <div class="hit" id="h2"><i><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1c638c" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg></i><div><b>Fehlercodeliste FZ-Serie</b><span><mark>E-217</mark> Kühlmittelkreislauf · Druck unter Sollwert</span></div></div>
+    <div class="hit" id="h3"><i><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1c638c" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg></i><div><b>Servicebulletin SB-14</b><span>Kühlmittelfilter: neue Wechselintervalle</span></div></div>
+  </div>
+
+  <div id="chat" class="card abs">
+    <div class="label">KI-Suche</div>
+    <div id="q" class="bubble me" style="top:96px">Was bedeutet E-217 und was kann ich tun?</div>
+    <div id="a" class="bubble ai" style="top:190px"><div class="ai-tag">✦ Antwort aus Ihrer Dokumentation</div><span id="atext"></span><span id="caret" class="caret"></span><div><span id="src" class="source"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17805f" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>Wartungshandbuch FZ 600, Seite 42</span></div></div>
+    <div id="q2" class="bubble me" style="top:450px">Erledigt. Der Fehler bleibt.</div>
+    <div id="a2" class="bubble ai" style="top:540px">Dann sollte sich der Service das ansehen.<br><span id="srbtn">Serviceanfrage stellen →</span></div>
+  </div>
+
+  <div id="cap4" class="cap dark abs" style="bottom:70px">Zuerst hilft sich der Kunde selbst.<small>In der Dokumentation seiner Maschine oder per KI-Suche, mit Quelle.</small></div>
+
+  <!-- ===== Szene 5: Serviceanfrage und Zuweisung ===== -->
+  <div id="request" class="card abs">
+    <div class="label">Neue Serviceanfrage</div>
+    <h3 style="margin:12px 0 22px">In vier Schritten zum Hersteller</h3>
+    <div class="field" data-d="29.2"><span class="n">1</span><label>Typ</label><span class="v">Störung</span></div>
+    <div class="field" data-d="29.6"><span class="n">2</span><label>Maschine</label><span class="v">FZ 600 · SN 24-1087</span></div>
+    <div class="field" data-d="30.0"><span class="n">3</span><label>Standort</label><span class="v">Werk Ulm, Halle 3</span></div>
+    <div class="field" data-d="30.4"><span class="n">4</span><label>Beschreibung</label><span class="v">E-217, Filter gereinigt, Fehler bleibt.</span></div>
+    <div id="attach" class="chip" style="margin-top:6px">✓ Verlauf der KI-Suche angehängt</div><br>
+    <span id="send">Absenden ➜</span>
+  </div>
+
+  <div id="console" class="card abs">
+    <div class="label">Hersteller · Service-Konsole</div>
+    <h3 style="margin-top:12px">Automatisch zugewiesen</h3>
+    <div class="route"><span class="pill" data-d="32.6">Störung</span>→<span class="pill" data-d="32.9">FZ-Serie</span>→<span class="pill team" data-d="33.2">Team Hydraulik</span></div>
+    <div class="inbox">
+      <div class="label">Eingang Team Hydraulik</div>
+      <div class="inrow" id="newrow"><b>#4711</b> Weber Präzisionsteile · E-217<em>neu</em></div>
+      <div class="inrow"><b>#4698</b> Hartmann Kunststofftechnik · Leckage<em>in Arbeit</em></div>
+      <div class="inrow"><b>#4690</b> Brenner Metallbau · Wartung<em>wartet auf Teil</em></div>
+    </div>
+  </div>
+  <svg id="flyer" class="abs" viewBox="0 0 84 60" aria-hidden="true"><rect x="2" y="2" width="80" height="56" rx="8" fill="#fff" stroke="#24b38a" stroke-width="4"/><path d="M6 8l36 26 36-26" fill="none" stroke="#24b38a" stroke-width="4"/></svg>
+
+  <div id="cap5" class="cap dark abs" style="bottom:70px">Keine Lösung gefunden? Dann eine Serviceanfrage.<small>Sie landet direkt im verantwortlichen Team des Herstellers.</small></div>
+
+  <!-- ===== Szene 6: Chat am Vorgang ===== -->
+  <div id="teams" class="card abs">
+    <div class="side">
+      <div class="label">Vorgänge</div>
+      <div class="chan on">#4711 · E-217 · FZ 600</div>
+      <div class="chan">#4698 · Leckage</div>
+      <div class="chan">#4690 · Wartung</div>
+      <div class="chan">#4672 · Ersatzteil</div>
+    </div>
+    <div class="main">
+      <div class="thead"><h3>#4711 · Kühlmitteldruck E-217</h3><span id="tstatus" class="status">Neu</span>
+        <div class="avs"><span style="background:#1c638c">KW</span><span style="background:#24b38a">ST</span><span style="background:#8a969d">HP</span></div></div>
+      <div class="tmsg" id="t1" style="top:128px"><div class="av" style="background:#24b38a">ST</div><div><div class="nm">Serviceteam Hydraulik<small>8:06</small></div><div class="tx">Danke für die Anfrage! Kurze Rückfrage: Welchen Druck zeigt das Manometer, und läuft die Pumpe hörbar?</div></div></div>
+      <div class="tmsg cust" id="t2" style="top:292px"><div class="av" style="background:#1c638c">KW</div><div><div class="nm">K. Weber, Weber Präzisionsteile<small>8:11</small></div><div class="tx">0,4 bar. Die Pumpe läuft, ist aber ungewöhnlich laut.<div class="photo"></div></div></div></div>
+      <div class="tmsg" id="t3" style="top:510px"><div class="av" style="background:#24b38a">ST</div><div><div class="nm">Serviceteam Hydraulik<small>8:14</small></div><div class="tx">Danke, damit ist es klar: Das Laufrad der Pumpe KP-40 ist verschlissen. Die Pumpe muss getauscht werden, das Teil ist bestellt und morgen bei Ihnen.<div class="att"><span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#175173" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>Anleitung Pumpentausch.pdf</span><span>⚙ KP-40 · bestellt</span></div></div></div></div>
+      <div class="typing" id="ty1" style="top:150px"><i></i><i></i><i></i>Serviceteam schreibt …</div>
+      <div class="typing" id="ty2" style="top:314px"><i></i><i></i><i></i>K. Weber schreibt …</div>
+      <div class="typing" id="ty3" style="top:532px"><i></i><i></i><i></i>Serviceteam schreibt …</div>
+    </div>
+  </div>
+
+  <div id="cap6c" class="cap dark abs" style="bottom:60px">Rückfrage im Chat. Lösung am Vorgang.<small>Kein E-Mail-Pingpong: Kunde und Serviceteam schreiben direkt im Ticket.</small></div>
+
+  <!-- ===== Szene 7: Alle Beteiligten ===== -->
+  <svg id="net" class="abs" viewBox="0 0 1920 1080" aria-hidden="true">
+    <g id="rings" fill="none" stroke="#9fbdcf">
+      <circle cx="960" cy="470" r="200" stroke-dasharray="6 10" stroke-width="2"/>
+      <circle cx="960" cy="470" r="330" stroke-opacity=".5" stroke-width="2"/>
+    </g>
+    <g id="links" stroke="#24b38a" stroke-width="4" stroke-linecap="round">
+      <line x1="960" y1="470" x2="560" y2="250"/>
+      <line x1="960" y1="470" x2="1360" y2="250"/>
+      <line x1="960" y1="470" x2="560" y2="690"/>
+      <line x1="960" y1="470" x2="1360" y2="690"/>
+    </g>
+    <g id="dots" fill="#24b38a"></g>
+    <circle cx="960" cy="470" r="130" fill="#fff" stroke="#e1e8ed" stroke-width="3"/>
+    <g transform="translate(870 380) scale(.45)">
+      <rect x="30" y="78" width="340" height="270" rx="22" fill="#2a77a3"/>
+      <rect x="58" y="138" width="200" height="160" rx="12" fill="#0f3a53"/>
+      <rect x="278" y="138" width="70" height="90" rx="10" fill="#0f3a53"/>
+      <line x1="300" y1="78" x2="300" y2="40" stroke="#9fbdcf" stroke-width="8"/>
+      <circle cx="300" cy="30" r="18" fill="#24b38a"/>
+    </g>
+    <text x="960" y="566" text-anchor="middle" font-family="Work Sans, sans-serif" font-size="22" font-weight="600" fill="#175173">SN 24-1087</text>
+  </svg>
+  <div id="nodes">
+    <div class="node top" style="left:560px;top:250px"><div class="ic"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1c638c" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><b>Ihr Kunde</b><span>meldet, fragt, bestellt</span></div>
+    <div class="node top" style="left:1360px;top:250px"><div class="ic"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1c638c" stroke-width="1.8"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/></svg></div><b>Händler</b><span>sieht nur seine Kunden</span></div>
+    <div class="node" style="left:560px;top:690px"><div class="ic"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1c638c" stroke-width="1.8"><path d="M14 6a4 4 0 0 0 5 5l-9 9-3-3 9-9a4 4 0 0 0-2-2z"/></svg></div><b>Techniker</b><span>Checkliste statt Handyfoto</span></div>
+    <div class="node" style="left:1360px;top:690px"><div class="ic"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1c638c" stroke-width="1.8"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><b>Ihr Serviceteam</b><span>steuert und wertet aus</span></div>
+  </div>
+  <div id="cap6" class="cap dark abs" style="bottom:70px">Alle sehen denselben Stand.<small>Jeder genau das, was für ihn freigegeben ist.</small></div>
+
+  <!-- ===== Szene 8: Zahlen ===== -->
+  <div id="n1" class="big abs" style="left:230px"><b id="n1v">0 %</b><span>Serviceanfragen</span><small>Kunden finden die Antwort selbst.</small></div>
+  <div id="n2" class="big abs" style="left:990px"><b id="n2v">0 %</b><span>Bearbeitungszeit</span><small>Alle arbeiten im selben Vorgang.</small></div>
+  <div id="facts" class="abs center">42.300 Nutzer · 78 Länder · 16 Sprachen</div>
+  <div id="footnote" class="abs center">Mittelständischer Maschinenbauer, rund 80 Serviceanfragen pro Tag: 2022 per E-Mail, 2024 mit Service Pacemaker.</div>
+
+  <!-- ===== Szene 9: Ende ===== -->
+  <div id="cap8" class="cap abs">Vom Stillstand zur Lösung. An einem Ort.</div>
+  <div id="endcard" class="abs">
+    <svg viewBox="0 0 177 36" aria-label="ApproLogic"><path fill="currentColor" fill-rule="evenodd" d="M50.916 20.148v-.042c0-2.42 1.998-3.673 4.984-3.673 1.173 0 2.323.214 3.054.454v-.198c0-1.21-.825-1.903-2.537-1.903-1.342 0-2.372.24-3.503.653l-.916-2.9c1.433-.54 2.959-.909 5.147-.909 2.279 0 3.826.502 4.839 1.429.963.865 1.363 2.077 1.363 3.719V23.5H58.93v-1.213c-.872.888-2.071 1.473-3.74 1.473-2.418 0-4.275-1.278-4.275-3.613zM59 19.26v-.538a5.107 5.107 0 00-1.74-.303c-1.296 0-2.044.585-2.044 1.448v.048c0 .797.656 1.272 1.575 1.272 1.292 0 2.209-.757 2.209-1.927zM65.154 11.805h4.463v1.556c.868-.974 1.953-1.818 3.854-1.818 3.032 0 5.639 2.316 5.639 6.052v.046c0 3.803-2.607 6.117-5.618 6.117-1.922 0-3.05-.802-3.875-1.686v4.882h-4.463V11.803v.002zm9.56 5.853v-.04c0-1.537-1.149-2.636-2.607-2.636-1.43 0-2.585 1.097-2.585 2.636v.04c0 1.56 1.155 2.661 2.585 2.661 1.458 0 2.608-1.084 2.608-2.66zM80.562 11.805h4.465v1.556c.871-.974 1.953-1.818 3.855-1.818 3.028 0 5.64 2.316 5.64 6.052v.046c0 3.803-2.611 6.117-5.618 6.117-1.924 0-3.053-.802-3.877-1.686v4.882h-4.465V11.803v.002zm9.566 5.853v-.04c0-1.537-1.153-2.636-2.609-2.636-1.431 0-2.58 1.097-2.58 2.636v.04c0 1.56 1.149 2.661 2.58 2.661 1.456 0 2.61-1.084 2.61-2.66zM95.982 11.805h4.461v2.357c.729-1.6 1.901-2.637 4.018-2.55v4.321h-.376c-2.329 0-3.642 1.232-3.642 3.934V23.5h-4.462V11.805M104.812 17.705v-.044c0-3.326 2.963-6.118 7.047-6.118 4.07 0 7.004 2.745 7.004 6.078v.04c0 3.331-2.958 6.12-7.048 6.12-4.068 0-7.003-2.745-7.003-6.076zm9.707 0v-.044c0-1.426-1.131-2.635-2.704-2.635-1.62 0-2.655 1.191-2.655 2.595v.04c0 1.432 1.128 2.64 2.699 2.64 1.623 0 2.66-1.191 2.66-2.596zM120.368 7.72h4.462V23.5h-4.462V7.72zM126.334 17.705v-.044c0-3.326 2.959-6.118 7.05-6.118 4.064 0 6.999 2.745 6.999 6.078v.04c0 3.331-2.96 6.12-7.047 6.12-4.064 0-7.002-2.745-7.002-6.076zm9.703 0v-.044c0-1.426-1.126-2.635-2.702-2.635-1.619 0-2.655 1.191-2.655 2.595v.04c0 1.432 1.131 2.64 2.703 2.64 1.621 0 2.654-1.191 2.654-2.596zM141.676 25.66l1.432-2.72c1.365.69 2.73 1.102 4.444 1.102 2.229 0 3.334-1.02 3.334-2.875v-.455c-.893.95-2.063 1.753-3.92 1.753-3.125 0-5.643-2.08-5.643-5.425v-.046c0-3.373 2.564-5.45 5.499-5.45 1.904 0 3.031.715 3.995 1.647v-1.383h4.465v8.882c0 2.142-.52 3.633-1.645 4.67-1.153 1.06-2.938 1.647-5.591 1.647-2.47 0-4.539-.477-6.37-1.344v-.003zm9.21-8.617v-.046c0-1.3-1.08-2.25-2.582-2.25-1.529 0-2.607.975-2.607 2.27v.04c0 1.3 1.078 2.251 2.607 2.251 1.502 0 2.582-.97 2.582-2.265zM157.766 11.805h4.464v11.696h-4.464V11.805zM163.862 17.705v-.044c0-3.307 2.8-6.095 6.817-6.095 2.606 0 4.343 1.041 5.425 2.62l-3.032 2.072c-.61-.779-1.292-1.231-2.372-1.231-1.434 0-2.489 1.168-2.489 2.594v.04c0 1.515 1.031 2.66 2.537 2.66 1.057 0 1.737-.454 2.443-1.211l2.983 1.99c-1.175 1.601-2.864 2.68-5.664 2.68-3.826 0-6.648-2.765-6.648-6.075zM24.753 20.6l1.277 3.172 4.28 1.396-2.764 2.542-1.516-3.938-3.391-1.231 4.548 12.388 2.335-2.149-1.055-2.716 4.396-4.049 2.96.969 2.39-2.205-13.462-4.181.002.002zm1.18-9.311l-1.338 3.118 13.463-4.18-2.333-2.152-2.958.97L28.368 5l1.056-2.721L27.028.075l-4.546 12.39 3.449-1.177h.002zm1.512-3.94l2.768 2.543-4.282 1.396 1.514-3.939zm1.343 10.163l-3.343 1.334 12.735 5.802v-3.036l-2.833-1.239V14.65l2.833-1.24v-3.116L25.445 16.1l3.343 1.413zm4.103-1.797v3.595l-4.103-1.798 4.103-1.797zM19.262 26.4l1.955 3.774h-3.909l1.954-3.774-1.45-3.073-6.306 11.715h3.301l1.347-2.607h6.22l1.345 2.607h3.384l-6.306-11.715-1.535 3.073zm-6.898-15.026L8.08 9.98l2.767-2.542 1.517 3.936 3.389 1.232L11.205.221 8.87 2.366l1.053 2.718-4.396 4.052-2.958-.972-2.396 2.204 13.463 4.183-1.275-3.175.002-.001zm6.76-2.626L17.17 4.976h3.91l-1.956 3.773 1.45 3.075L26.88.107h-3.301l-1.345 2.609h-6.222L14.668.105h-3.385l6.305 11.72 1.536-3.076zM.206 24.852L12.94 19.05 9.6 17.64l3.338-1.336L.207 10.5v3.038l2.835 1.238V20.5L.206 21.738v3.114zM9.6 17.638l-4.104 1.8V15.84L9.6 17.638zm2.856 6.223l1.338-3.117L.328 24.927l2.335 2.15 2.956-.975 4.4 4.053-1.055 2.715 2.396 2.205 4.544-12.392-3.447 1.177v.002zm-1.516 3.937l-2.765-2.543 4.281-1.395-1.516 3.938z"/></svg>
+    <div class="p">Service Pacemaker<sup>®</sup></div>
+    <div class="s">Die After-Sales-Plattform für den Maschinenbau</div>
+    <div class="c">Demo in 30 Minuten anfragen</div>
+    <div class="u">apprologic.de/kontakt</div>
+  </div>
+
+  <div id="fade" class="abs"></div>
+</div>
+
+<script>
+  const DURATION = 66;
+  const $ = (id) => document.getElementById(id);
+  const clamp = (x) => Math.max(0, Math.min(1, x));
+  const lerp = (a, b, x) => a + (b - a) * x;
+  const out = (x) => 1 - Math.pow(1 - x, 3);
+  const inOut = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  const back = (x) => { const c = 1.70158, c3 = c + 1; return 1 + c3 * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+  const prog = (t, a, d = .6, f = out) => f(clamp((t - a) / d));
+
+  // Blendet ein Element zwischen a (Eintritt) und b (Austritt) ein und aus.
+  function show(el, t, a, b, { d = .6, dy = 40, s = 0, x = 0 } = {}) {
+    if (typeof el === "string") el = $(el);
+    const i = prog(t, a, d), o = prog(t, b - .5, .5, inOut);
+    const v = i * (1 - o);
+    el.style.opacity = v;
+    el.style.visibility = v <= 0.001 ? "hidden" : "visible";
+    const sc = s ? lerp(1 - s, 1, i) : 1;
+    el.style.transform = `translate(${(1 - i) * x}px, ${(1 - i) * dy - o * 20}px) scale(${sc})`;
+    return i;
+  }
+
+  const AI_TEXT = "E-217 meldet zu niedrigen Kühlmitteldruck.\n1. Filter F2 reinigen.\n2. Kühlmittelleitung entlüften.";
+  const chaos = [...document.querySelectorAll(".chaos")];
+  const fields = [...document.querySelectorAll("#request .field")];
+  const pills = [...document.querySelectorAll("#console .pill")];
+  const nodes = [...document.querySelectorAll(".node")];
+  const links = [...document.querySelectorAll("#links line")];
+  links.forEach((l) => { const len = Math.hypot(l.x2.baseVal.value - l.x1.baseVal.value, l.y2.baseVal.value - l.y1.baseVal.value); l.dataset.len = len; l.style.strokeDasharray = len; });
+  const dots = $("dots");
+  for (let i = 0; i < 8; i++) { const c = document.createElementNS("http://www.w3.org/2000/svg", "circle"); c.setAttribute("r", 8); dots.appendChild(c); }
+
+  window.render = function (t) {
+    // Hintergrund: dunkel (0–14 s), hell (14–57 s), dunkel (ab 57 s)
+    const light = prog(t, 13.8, 1, inOut) * (1 - prog(t, 57.0, 1, inOut));
+    $("bgLight").style.opacity = light;
+    $("grid").style.opacity = 1 - light;
+    $("bgGlow").style.opacity = (1 - light) * (t > 56 ? prog(t, 58.4, 1.5) : 0);
+
+    // --- Szene 1: Störung ---
+    show("clock", t, .4, 13.6, { dy: -20 });
+    const fault = t > 2.2 && t < 58.6;
+    const pulse = .5 + .5 * Math.sin(t * 8);
+    $("lamp").setAttribute("fill", t >= 58.6 ? "#24b38a" : fault ? "#e0533d" : "#9fbdcf");
+    $("lampGlow").setAttribute("fill", t >= 58.6 ? "#24b38a" : "#e0533d");
+    $("lampGlow").setAttribute("opacity", t >= 58.6 ? .35 * (.6 + .4 * Math.sin(t * 3)) : fault ? .15 + .35 * pulse : 0);
+    $("screen").setAttribute("fill", t >= 58.6 ? "#24b38a" : fault ? (pulse > .5 ? "#e0533d" : "#7a2a1f") : "#24b38a");
+    const spin = t < 2.2 || t >= 58.6 ? Math.sin(t * 20) * 3 : 0;
+    $("spindle").setAttribute("transform", `translate(0 ${spin})`);
+
+    // Maschine: sichtbar 0–14.5 und ab 57.8; schüttelt kurz bei der Störung
+    const shake = t > 2.2 && t < 3 ? Math.sin(t * 90) * 6 * (1 - (t - 2.2) / .8) : 0;
+    const mIn = prog(t, 0, .8), mOut = prog(t, 14, .6, inOut), mBack = prog(t, 57.8, .8);
+    const mv = t < 40 ? mIn * (1 - mOut) : mBack * (1 - prog(t, 61.6, .6, inOut));
+    const m = $("machine");
+    m.style.opacity = mv;
+    m.style.transform = `translateX(${shake}px) scale(${t < 40 ? lerp(.9, 1, mIn) - mOut * .5 : lerp(.9, 1, mBack)})`;
+    show("fault", t, 2.4, 14.2, { s: .4, dy: 0, d: .5 });
+    $("fault").style.transform += ` scale(${1 + .04 * pulse})`;
+    show("cap1", t, 2.8, 6.2);
+
+    // --- Szene 2: Chaos ---
+    show("downtime", t, 6.6, 14.2, { dy: -20 });
+    const hours = Math.floor(lerp(0, 52, clamp((t - 6.8) / 7)));
+    $("dtv").textContent = hours + " Std.";
+    show("cap2", t, 6.6, 13.8);
+    const conv = prog(t, 13.6, 1.2, inOut); // Karten fliegen zur Akte zusammen
+    chaos.forEach((el, k) => {
+      const x = +el.dataset.x, y = +el.dataset.y, r = +el.dataset.r, d = +el.dataset.d;
+      const i = prog(t, d, .5, back);
+      const jx = Math.sin(t * (3 + k) + k) * 4, jy = Math.cos(t * (2.5 + k) + k * 2) * 4;
+      const cx = 960 - el.offsetWidth / 2, cy = 460 - el.offsetHeight / 2;
+      const px = lerp(x, cx, conv), py = lerp(y, cy, conv);
+      el.style.left = px + "px"; el.style.top = py + "px";
+      el.style.opacity = clamp(i * 1.5) * (1 - prog(t, 14.4, .4));
+      el.style.visibility = t < d || t > 15 ? "hidden" : "visible";
+      el.style.transform = `translate(${jx * (1 - conv)}px, ${jy * (1 - conv)}px) rotate(${r * (1 - conv)}deg) scale(${lerp(.3, 1, i) * (1 - conv * .8)})`;
+    });
+
+    // --- Szene 3: Titel ---
+    show("eyebrow", t, 14.6, 19.2);
+    show("title", t, 15.0, 19.2, { s: .1 });
+    show("subtitle", t, 15.8, 19.2);
+
+    // --- Szene 4: Selbsthilfe ---
+    show("docs", t, 19.4, 28.4, { x: -80, dy: 0 });
+    const query = "E-217";
+    $("stext").textContent = query.slice(0, Math.floor(query.length * clamp((t - 20.2) / .8)));
+    $("scaret").style.opacity = t < 21.2 && Math.sin(t * 14) > -.3 ? 1 : 0;
+    show("hitsLbl", t, 21.1, 28.4, { dy: 10 });
+    ["h1", "h2", "h3"].forEach((id, k) => show(id, t, 21.3 + k * .3, 28.4, { dy: 20 }));
+    show("chat", t, 20.6, 28.4, { x: 80, dy: 0 });
+    show("q", t, 22.2, 28.4, { dy: 20, s: .2 });
+    show("a", t, 22.8, 28.4, { dy: 20 });
+    $("atext").textContent = AI_TEXT.slice(0, Math.floor(AI_TEXT.length * clamp((t - 23.0) / 1.6)));
+    $("caret").style.opacity = t > 23 && t < 24.6 && Math.sin(t * 14) > -.3 ? 1 : 0;
+    $("src").style.opacity = prog(t, 24.6, .4);
+    show("q2", t, 25.4, 28.4, { dy: 20, s: .2 });
+    show("a2", t, 26.2, 28.4, { dy: 20 });
+    const press = t > 27.5 && t < 27.8 ? .92 : 1;
+    $("srbtn").style.transform = `scale(${press * (1 + .03 * Math.sin(t * 6))})`;
+    show("cap4", t, 20.4, 28.2);
+
+    // --- Szene 5: Serviceanfrage ---
+    show("request", t, 28.6, 35.6, { x: -80, dy: 0 });
+    fields.forEach((f) => { f.className = "field" + (t > +f.dataset.d ? " on" : ""); f.querySelector(".v").style.opacity = prog(t, +f.dataset.d, .4); });
+    $("attach").style.opacity = prog(t, 30.8, .4);
+    const sendIn = prog(t, 31.0, .4, back);
+    $("send").style.opacity = clamp(sendIn);
+    $("send").style.transform = `scale(${lerp(.7, 1, sendIn) * (t > 31.6 && t < 31.85 ? .92 : 1)})`;
+    show("console", t, 29.2, 35.6, { x: 80, dy: 0 });
+    pills.forEach((p) => { p.classList.toggle("on", t > +p.dataset.d); });
+    const nr = prog(t, 32.4, .5, back);
+    $("newrow").style.opacity = clamp(nr);
+    $("newrow").style.transform = `translateX(${(1 - nr) * 60}px)`;
+    // Umschlag fliegt vom Absenden-Knopf in den Eingang des Teams
+    const fe = inOut(clamp((t - 31.7) / .8));
+    const fx = lerp(330, 1080, fe), fy = lerp(720, 520, fe) - Math.sin(Math.PI * fe) * 220;
+    $("flyer").style.opacity = t > 31.7 && t < 32.5 ? 1 : 0;
+    $("flyer").style.transform = `translate(${fx}px, ${fy}px) rotate(${lerp(-10, 8, fe)}deg) scale(${1 - .3 * fe})`;
+    show("cap5", t, 29.0, 35.4);
+
+    // --- Szene 6: Chat am Vorgang ---
+    show("teams", t, 35.8, 45.6, { dy: 60 });
+    [["ty1", 36.6, 37.4], ["ty2", 38.6, 39.6], ["ty3", 40.9, 42.0]].forEach(([id, a, b]) => {
+      const el = $(id); el.style.opacity = t > a && t < b ? 1 : 0;
+      [...el.children].forEach((d, k) => { d.style.transform = `translateY(${Math.sin(t * 10 - k) * -4}px)`; });
+    });
+    show("t1", t, 37.4, 45.6, { dy: 20 });
+    show("t2", t, 39.6, 45.6, { dy: 20 });
+    show("t3", t, 42.0, 45.6, { dy: 20 });
+    const ts = $("tstatus");
+    const T = t < 37.4 ? ["Neu · Team Hydraulik", "#e8f0f5", "#1c638c"] : t < 39.6 ? ["Rückfrage an Kunden", "#fff4d6", "#9a6a00"] : t < 42.3 ? ["In Bearbeitung", "#e8f0f5", "#1c638c"] : ["Lösung gesendet ✓", "#e4f6f0", "#17805f"];
+    ts.textContent = T[0]; ts.style.background = T[1]; ts.style.color = T[2];
+    ts.style.transform = `scale(${t > 42.3 ? lerp(1.15, 1, prog(t, 42.3, .4)) : 1})`;
+    show("cap6c", t, 36.4, 45.4);
+
+    // --- Szene 7: Netz ---
+    show("net", t, 45.8, 51.6, { dy: 0, s: .08 });
+    links.forEach((l, k) => { l.style.strokeDashoffset = l.dataset.len * (1 - prog(t, 46.4 + k * .3, .7)); });
+    nodes.forEach((nd, k) => {
+      const i = prog(t, 46.6 + k * .3, .5, back), o = prog(t, 51.1, .5, inOut);
+      nd.style.opacity = clamp(i) * (1 - o);
+      nd.style.visibility = t < 46.6 || t > 51.7 ? "hidden" : "visible";
+      nd.style.transform = `translate(-50%, ${nd.classList.contains("top") ? "calc(-100% + 60px)" : "-60px"}) scale(${lerp(.5, 1, i)})`;
+      nd.style.transformOrigin = nd.classList.contains("top") ? "50% calc(100% - 60px)" : "50% 60px";
+    });
+    [...dots.children].forEach((c, k) => {
+      const l = links[k % 4], dir = k < 4 ? 1 : -1;
+      const p = ((t - 47.6 - (k * .37)) * .6) % 1;
+      const f = dir > 0 ? p : 1 - p;
+      const x1 = l.x1.baseVal.value, y1 = l.y1.baseVal.value, x2 = l.x2.baseVal.value, y2 = l.y2.baseVal.value;
+      c.setAttribute("cx", lerp(x1, x2, f)); c.setAttribute("cy", lerp(y1, y2, f));
+      c.setAttribute("opacity", t > 47.6 + k * .37 ? Math.sin(Math.PI * clamp(p)) : 0);
+    });
+    show("cap6", t, 47.4, 51.4);
+
+    // --- Szene 8: Zahlen ---
+    show("n1", t, 51.8, 57.4, { s: .2, dy: 0 });
+    show("n2", t, 52.4, 57.4, { s: .2, dy: 0 });
+    $("n1v").textContent = "−" + Math.round(20 * prog(t, 52.0, 1.6)) + " %";
+    $("n2v").textContent = "−" + Math.round(30 * prog(t, 52.6, 1.6)) + " %";
+    show("facts", t, 53.8, 57.4);
+    show("footnote", t, 54.2, 57.4);
+
+    // --- Szene 9: Ende ---
+    show("ok", t, 58.8, 61.8, { s: .4, dy: 0, d: .5 });
+    show("cap8", t, 59.2, 62.0);
+    show("endcard", t, 62.2, 99, { dy: 30 });
+    const ec = $("endcard").children;
+    [...ec].forEach((e, k) => { const i = prog(t, 62.2 + k * .25, .6); e.style.opacity = i; e.style.transform = `translateY(${(1 - i) * 24}px)`; });
+
+    // Ein- und Ausblende
+    $("fade").style.opacity = 1 - prog(t, 0, .6) + prog(t, DURATION - .8, .8, inOut);
+  };
+
+  function fit() {
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+    const st = $("stage");
+    st.style.transform = `translate(${(innerWidth - 1920 * s) / 2}px, ${(innerHeight - 1080 * s) / 2}px) scale(${s})`;
+  }
+
+  if (new URLSearchParams(location.search).has("render")) {
+    window.render(0);
+  } else {
+    addEventListener("resize", fit); fit();
+    let paused = false, t0 = performance.now(), pausedAt = 0;
+    addEventListener("keydown", (e) => {
+      if (e.code !== "Space") return;
+      paused = !paused;
+      if (paused) pausedAt = performance.now(); else t0 += performance.now() - pausedAt;
+    });
+    (function loop(now) {
+      if (!paused) window.render(((now - t0) / 1000) % DURATION);
+      requestAnimationFrame(loop);
+    })(performance.now());
+  }
+</script>
+</body>
+</html>

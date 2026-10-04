@@ -7,6 +7,11 @@ description: "After-Sales-Plattform und Kundenportal für den Maschinenbau: Doku
 section: "start"
 ---
 
+```video
+/video/service-pacemaker.mp4 /video/service-pacemaker.jpg
+Produktvideo, gut eine Minute: Eine Maschine meldet eine Störung. Der Kunde sucht zuerst selbst in der Dokumentation und fragt die KI, stellt dann eine Serviceanfrage. Sie landet direkt beim zuständigen Team des Herstellers, das per Chat zurückfragt und die Lösung schickt.
+```
+
 ```image
 /bilder/maschinenakte.svg
 Vorher und nachher: Links liegen die Informationen zu einer Maschine heute verstreut – eine unbeantwortete E-Mail, ein Foto im Chat auf dem Diensthandy, eine Rückrufnotiz auf Papier, ein Wartungsplan als Excel-Datei und ein veraltetes Handbuch auf dem Netzlaufwerk. Rechts läuft alles in der Maschinenakte im Service Pacemaker zusammen: Status aus der IoT-Plattform, Dokumentation, offene Serviceanfrage, nächste Wartung, Ersatzteile und die Historie, gemeinsam genutzt von Kunde, Servicepartner und Serviceteam.

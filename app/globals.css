@@ -244,6 +244,25 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 48px 0; }
 .figure-logos { background: var(--paper); box-shadow: none; padding: clamp(20px, 4vw, 40px) clamp(20px, 5vw, 56px); }
 .figure-logos img { max-width: 900px; margin: 0 auto; }
 
+/* Video mit Vorschaubild und Abspielknopf (components/Video.tsx) */
+.figure-video { position: relative; background: var(--blue-deep); box-shadow: var(--shadow-md); }
+.figure-video video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: var(--blue-deep); }
+.play {
+  position: absolute; inset: 0; display: grid; place-items: center; width: 100%; padding: 0; border: 0;
+  background: linear-gradient(rgba(15, 58, 83, 0), rgba(15, 58, 83, .12)); cursor: pointer;
+}
+.play span {
+  position: relative; width: clamp(52px, 9vw, 96px); aspect-ratio: 1; border-radius: 50%;
+  background: var(--green); box-shadow: var(--shadow-lg); transition: transform .15s, background-color .15s;
+}
+.play span::after { /* Dreieck */
+  content: ""; position: absolute; left: 54%; top: 50%; transform: translate(-50%, -50%);
+  border-style: solid; border-width: .9em 0 .9em 1.5em; border-color: transparent transparent transparent #fff;
+  font-size: clamp(12px, 1.6vw, 17px);
+}
+.play:hover span, .play:focus-visible span { transform: scale(1.07); background: var(--green-hover); }
+.play:focus-visible { outline: 3px solid var(--green-light); outline-offset: -3px; }
+
 /* Grafik per Klick vergrößern (components/Zoomable.tsx) */
 .figure .zoom { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
 .lightbox {

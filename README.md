@@ -60,6 +60,11 @@ Optionaler Text.
 Beschreibung des Bildes             (Alt-Text; ohne Pfad erscheint ein Platzhalter)
 ```
 
+```video
+/video/datei.mp4 /video/datei.jpg   (MP4 in public/, dahinter optional ein Vorschaubild)
+Beschreibung des Videos             (für Screenreader; die Datei lädt erst beim Klick auf Abspielen)
+```
+
 ```form
 ```
 ````

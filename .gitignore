@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Produktvideo: erzeugte Dateien (aus den Skripten in assets/produktvideo/ reproduzierbar)
+/assets/produktvideo/*.mp4
+/assets/produktvideo/*.wav
